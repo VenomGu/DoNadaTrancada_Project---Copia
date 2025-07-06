@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>Controle de Estoque DoNadaTrancada</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <style>
+/* Reset básico e estilos globais */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 10px; /* Reduz o padding geral */
+  background-color: #f0f2f5;
+  color: #333;
+  line-height: 1.6;
+}
+.container {
+  width: 100%; /* Ocupa a largura total sempre */
+  margin: 10px auto;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box; /* Garante que padding e border não adicionem largura */
+}
+h1, h2 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  text-align: center;
+}
+h1 {
+    font-size: 1.8em;
+    border-bottom: 1px solid #eceff1;
+    padding-bottom: 10px;
+}
+h2 {
+    font-size: 1.4em;
+    margin-top: 25px;
+    color: #34495e;
+}
+
+/* Total do Estoque */
+.total-estoque {
+  font-size: 1.4em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #27ae60;
+  padding: 8px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* Controles da Tabela (Pesquisa, Filtro, Botões) */
+.table-controls {
+  display: flex;
+  flex-direction: column; /* Sempre empilha verticalmente para mobile-first */
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: stretch; /* Estica os itens para preencher a largura */
+}
+.table-controls input[type="text"],
+.table-controls select,
+.table-controls button {
+  width: 100%; /* Ocupa a largura total */
+  box-sizing: border-box;
+  padding: 12px;
+  font-size: 1.1em;
+}
+.table-controls button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.table-controls button:hover {
+    background-color: #2980b9;
+}
+
+/* Tabela de Itens */
+/* Novo wrapper para a tabela para permitir rolagem horizontal */
+.table-responsive {
+  overflow-x: auto; /* Permite rolagem horizontal se o conteúdo for muito largo */
+}
+table {
+  width: 100%; /* Permite que a tabela tente ocupar a largura total */
+  min-width: 600px; /* **Define uma largura mínima para a tabela**. Se a tela for menor que isso, a rolagem horizontal aparecerá. Isso garante que as colunas não fiquem excessivamente espremidas. */
+  border-collapse: collapse;
+  margin-top: 15px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+th, td {
+  border: 1px solid #e0e0e0;
+  padding: 10px;
+  text-align: left;
+  font-size: 0.9em;
+  white-space: nowrap; /* Impede que o texto quebre linhas, forçando a rolagem horizontal da tabela se necessário */
+}
+th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  color: #555;
+  text-transform: uppercase;
+}
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+tbody tr:hover {
+  background-color: #f1f1f1;
+  transition: background-color 0.2s ease;
+}
+
+/* Status com Cores */
+.status-em-estoque { background-color: #d4edda; color: #155724; font-weight: bold; }
+.status-temporariamente-indisponivel { background-color: #fff3cd; color: #856404; font-weight: bold; }
+.status-necessario-fazer-compra-novamente { background-color: #f8d7da; color: #721c24; font-weight: bold; }
+.status-esgotado { background-color: #f5c6cb; color: #721c24; font-weight: bold; }
+
+/* Botões de Ação na Tabela */
+td button {
+    padding: 8px 10px;
+    margin-right: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background-color 0.2s ease;
+    white-space: nowrap; /* Evita que o texto dos botões quebre */
+}
+td button:last-child {
+    margin-right: 0;
+}
+td button.edit-btn {
+    background-color: #f39c12;
+    color: white;
+}
+td button.edit-btn:hover {
+    background-color: #e67e22;
+}
+td button.delete-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+td button.delete-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Formulário de Adição/Edição */
+.form-section {
+    margin-top: 25px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fdfdfd;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+.form-group textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+.form-buttons {
+    margin-top: 20px;
+    text-align: center;
+    display: flex; /* Para centralizar e espaçar os botões */
+    flex-wrap: wrap; /* Permite que os botões quebrem linha se necessário */
+    justify-content: center; /* Centraliza os botões */
+    gap: 10px; /* Espaço entre os botões */
+}
+.form-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+    flex-grow: 1; /* Permite que os botões cresçam para ocupar o espaço disponível */
+    max-width: 180px; /* Limita o tamanho máximo de cada botão */
+    box-sizing: border-box;
+}
+.form-buttons button[type="submit"] {
+    background-color: #28a745;
+    color: white;
+}
+.form-buttons button[type="submit"]:hover {
+    background-color: #218838;
+}
+.form-buttons .btn-cancel {
+    background-color: #6c757d;
+    color: white;
+}
+.form-buttons .btn-cancel:hover {
+    background-color: #5a6268;
+}
+
+/* Mensagens */
+.message {
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+    font-size: 0.95em;
+}
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+    </style>
+</head>
+<body>
+  <div class="container" id="appContainer">
+    <h1>Controle de Estoque DoNadaTrancada</h1>
+
+    <div class="total-estoque" id="valorTotalEstoque">
+      Valor Total do Estoque: R$ 0,00
+    </div>
+
+    <div id="messageArea" class="message" style="display:none;"></div>
+
+    <h2>Lista de Itens</h2>
+    <div class="table-controls">
+        <input type="text" id="searchInput" placeholder="Pesquisar por Nome, ID ou Tipo...">
+        <select id="statusFilter">
+            <option value="">Todos os Status</option>
+            <option value="Em estoque">Em estoque</option>
+            <option value="Temporariamente indisponível">Temporariamente indisponível</option>
+            <option value="Necessário fazer compra novamente">Necessário fazer compra novamente</option>
+            <option value="Esgotado">Esgotado</option>
+        </select>
+        <button onclick="carregarItens()">Atualizar Tabela</button>
+        <button onclick="mostrarFormularioAdicionar()">Adicionar Novo Item</button>
+    </div>
+    <table id="tabelaItens">
+      <thead>
+        <tr>
+          <th>ID Item</th>
+          <th>Nome do Item</th>
+          <th>Tipo</th>
+          <th>Preço</th>
+          <th>Estoque</th>
+          <th>Status</th>
+          <th>Observações</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        </tbody>
+    </table>
+
+    <div class="form-section" id="formItem" style="display:none;">
+        <h2 id="formTitle">Adicionar Novo Item</h2>
+        <form id="itemForm">
+            <input type="hidden" id="itemId"> <div class="form-group">
+                <label for="itemName">Nome do Item:</label>
+                <input type="text" id="itemName" required>
+            </div>
+            <div class="form-group">
+                <label for="itemType">Tipo:</label>
+                <input type="text" id="itemType" required>
+                </div>
+            <div class="form-group">
+                <label for="itemPrice">Preço:</label>
+                <input type="number" id="itemPrice" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="itemStock">Estoque:</label>
+                <input type="number" id="itemStock" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="itemStatus">Status:</label>
+                <select id="itemStatus" required>
+                    <option value="Em estoque">Em estoque</option>
+                    <option value="Temporariamente indisponível">Temporariamente indisponível</option>
+                    <option value="Necessário fazer compra novamente">Necessário fazer compra novamente</option>
+                    <option value="Esgotado">Esgotado</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="itemObservations">Observações:</label>
+                <textarea id="itemObservations"></textarea>
+            </div>
+            <div class="form-buttons">
+                <button type="submit">Salvar Item</button>
+                <button type="button" class="btn-cancel" onclick="esconderFormulario()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+
+  </div>
+
+  <script>
+
+     function showMessage(msg, type) {
+      const messageArea = document.getElementById('messageArea');
+      messageArea.innerText = msg;
+      messageArea.className = 'message ' + type;
+      messageArea.style.display = 'block';
+      setTimeout(() => {
+          messageArea.style.display = 'none';
+      }, 5000);
+  }
+
+
+    // Inicialização ao carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+        carregarItens();
+        document.getElementById('itemForm').addEventListener('submit', handleFormSubmit);
+        document.getElementById('searchInput').addEventListener('keyup', carregarItens);
+        document.getElementById('statusFilter').addEventListener('change', carregarItens);
+    });
+
+    // Função para carregar e exibir os itens na tabela
+    function carregarItens() {
+        const searchTerms = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+
+        // Chama a função listarItens do Apps Script
+        google.script.run
+            .withSuccessHandler(function(itens) {
+                const tabelaCorpo = document.querySelector('#tabelaItens tbody');
+                tabelaCorpo.innerHTML = ''; // Limpa a tabela antes de preencher
+
+                let valorTotal = 0;
+
+                itens.forEach(item => {
+                    // Filtro por pesquisa (nome ou ID) e status
+                    const matchesSearch = (item.nomedoitem && item.nomedoitem.toLowerCase().includes(searchTerms)) ||
+                                        (item.iditem && String(item.iditem).toLowerCase().includes(searchTerms)) || 
+                                        (item.tipo && item.tipo.toLowerCase().includes(searchTerms));
+                    const matchesStatus = statusFilter === "" || (item.status && item.status === statusFilter);
+
+                    if (matchesSearch && matchesStatus) {
+                        const row = tabelaCorpo.insertRow();
+                        const statusClass = `status-${(item.status || '').toLowerCase().replace(/\s+/g, '-')}`;
+
+                        row.innerHTML = `
+                            <td>${item.iditem || ''}</td>
+                            <td>${item.nomedoitem || ''}</td>
+                            <td>${item.tipo || ''}</td>
+                            <td>R$ ${parseFloat(item.preco || 0).toFixed(2).replace('.', ',')}</td>
+                            <td>${item.estoque || 0}</td>
+                            <td class="${statusClass}">${item.status || ''}</td>
+                            <td>${item.observacoes || ''}</td>
+                            <td>
+                                <button class="edit-btn" onclick="mostrarFormularioEditar('${item.iditem}')">Editar</button>
+                                <button class="delete-btn" onclick="excluirItem('${item.iditem}')">Excluir</button>
+                            </td>
+                        `;
+                        valorTotal += (parseFloat(item.preco || 0) * parseInt(item.estoque || 0));
+                    }
+                });
+                document.getElementById('valorTotalEstoque').innerText = `Valor Total do Estoque: R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
+            })
+            .withFailureHandler(function(error) {
+                console.error("Erro ao carregar itens:", error.message);
+                showMessage("Erro ao carregar itens: " + error.message, 'error');
+            })
+            .listarItens(); // Chama a função listarItens no Code.gs
+    }
+
+    // Exibe o formulário para adicionar um novo item
+    function mostrarFormularioAdicionar() {
+        document.getElementById('formItem').style.display = 'block';
+        document.getElementById('itemId').value = ''; // Limpa o ID para nova adição
+        document.getElementById('itemForm').reset(); // Limpa todos os campos
+        document.getElementById('formTitle').innerText = 'Adicionar Novo Item';
+        document.getElementById('itemName').focus(); // Foca no primeiro campo
+        showMessage('', ''); // Limpa mensagens anteriores
+    }
+
+    // Exibe o formulário para editar um item existente
+    function mostrarFormularioEditar(id) {
+        showMessage('', ''); // Limpa mensagens anteriores
+        // Primeiro, chame o backend para buscar os dados do item
+        google.script.run
+            .withSuccessHandler(function(item) {
+                if (item) {
+                    document.getElementById('formItem').style.display = 'block';
+                    document.getElementById('itemId').value = item.iditem;
+                    document.getElementById('itemName').value = item.nomedoitem;
+                    document.getElementById('itemType').value = item.tipo;
+                    document.getElementById('itemPrice').value = parseFloat(item.preco).toFixed(2);
+                    document.getElementById('itemStock').value = item.estoque;
+                    document.getElementById('itemStatus').value = item.status;
+                    document.getElementById('itemObservations').value = item.observacoes;
+                    document.getElementById('formTitle').innerText = 'Editar Item';
+                    document.getElementById('itemName').focus(); // Foca no primeiro campo
+                } else {
+                    showMessage('Item não encontrado para edição.', 'error');
+                }
+            })
+            .withFailureHandler(function(error) {
+                console.error("Erro ao buscar item para edição:", error.message);
+                showMessage("Erro ao buscar item para edição: " + error.message, 'error');
+            })
+            .buscarItem(id); // Chama a função buscarItem no Code.gs
+    }
+
+    // Esconde o formulário
+    function esconderFormulario() {
+        document.getElementById('formItem').style.display = 'none';
+        showMessage('', ''); // Limpa mensagens anteriores
+    }
+
+    // Lida com o envio do formulário (Adicionar/Editar)
+    function handleFormSubmit(event) {
+        event.preventDefault(); // Impede o envio padrão do formulário
+        console.log("handleFormSubmit")
+        const itemId = document.getElementById('itemId').value;
+        const itemData = {
+            iditem: itemId || null,
+            nomedoitem: document.getElementById('itemName').value,
+            tipo: document.getElementById('itemType').value,
+            preco: parseFloat(document.getElementById('itemPrice').value),
+            estoque: parseInt(document.getElementById('itemStock').value),
+            status: document.getElementById('itemStatus').value,
+            observacoes: document.getElementById('itemObservations').value
+        };
+
+        // Validação básica frontend
+        if (!itemData.nomedoitem || !itemData.tipo || isNaN(itemData.preco) || isNaN(itemData.estoque) || !itemData.status) {
+            showMessage("Por favor, preencha todos os campos obrigatórios (Nome, Tipo, Preço, Estoque, Status).", 'error');
+            return;
+        }
+
+        const successHandler = function() {
+            showMessage('Item salvo com sucesso!', 'success');
+            esconderFormulario();
+            carregarItens(); // Recarrega a lista para mostrar as alterações
+        };
+
+        const failureHandler = function(error) {
+            console.error("Erro ao salvar item:", error.message);
+            showMessage("Erro ao salvar item: " + error.message, 'error');
+        };
+
+        // CORREÇÃO AQUI: Chame a função do Apps Script PRIMEIRO, depois encadeie os handlers
+        if (itemId) { // Se itemId existe, é uma edição
+            google.script.run
+                .withSuccessHandler(successHandler)
+                .withFailureHandler(failureHandler)
+                .editarItem(itemData); // Chama editarItem
+        } else { // Se itemId não existe, é uma adição
+            google.script.run
+                .withSuccessHandler(successHandler)
+                .withFailureHandler(failureHandler)
+                .adicionarItem(itemData); // Chama adicionarItem
+        }
+    }
+
+    // Função para excluir um item
+    function excluirItem(id) {
+        if (confirm(`Tem certeza que deseja excluir o item com ID ${id}?`)) {
+            google.script.run
+                .withSuccessHandler(function() {
+                    showMessage('Item excluído com sucesso!', 'success');
+                    carregarItens(); // Recarrega a lista
+                })
+                .withFailureHandler(function(error) {
+                    console.error("Erro ao excluir item:", error.message);
+                    showMessage("Erro ao excluir item: " + error.message, 'error');
+                })
+                .excluirItem(id); // Chama a função excluirItem no Code.gs
+        }
+    }
+
+  </script>
+</body>
+</html>

@@ -5,239 +5,317 @@
   <title>Controle de Estoque DoNadaTrancada</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+
   <style>
-/* Reset básico e estilos globais */
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 10px; /* Reduz o padding geral */
-  background-color: #f0f2f5;
-  color: #333;
-  line-height: 1.6;
-}
-.container {
-  width: 100%; /* Ocupa a largura total sempre */
-  margin: 10px auto;
-  background: #ffffff;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box; /* Garante que padding e border não adicionem largura */
-}
-h1, h2 {
-  color: #2c3e50;
-  margin-bottom: 15px;
-  text-align: center;
-}
-h1 {
-    font-size: 1.8em;
-    border-bottom: 1px solid #eceff1;
-    padding-bottom: 10px;
-}
-h2 {
-    font-size: 1.4em;
-    margin-top: 25px;
-    color: #34495e;
-}
+    /* Reset básico e estilos globais */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 10px; /* Reduz o padding geral para mobile */
+      background-color: #f0f2f5;
+      color: #333;
+      line-height: 1.6;
+      -webkit-text-size-adjust: 100%; /* Evita que o iOS ajuste o tamanho da fonte */
+      overflow-x: hidden; /* Evita rolagem horizontal indesejada */
+    }
+    .container {
+      max-width: 100%; /* Ocupa a largura total em mobile */
+      margin: 10px auto; /* Reduz margem para mobile */
+      background: #ffffff;
+      padding: 15px; /* Reduz padding interno para mobile */
+      border-radius: 8px; /* Ligeiramente menor para mobile */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Sombra mais suave */
+      position: relative; /* Importante para o z-index em relação ao overlay */
+      z-index: 1; /* Garante que o card principal esteja abaixo do overlay */
+    }
+    h1, h2 {
+      color: #2c3e50;
+      margin-bottom: 15px; /* Reduz margem para mobile */
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.8em; /* Tamanho de fonte ajustado para mobile */
+      border-bottom: 1px solid #eceff1; /* Borda mais fina */
+      padding-bottom: 10px; /* Reduz padding */
+    }
+    h2 {
+      font-size: 1.4em; /* Tamanho de fonte ajustado para mobile */
+      margin-top: 25px; /* Reduz margem */
+      color: #34495e;
+    }
 
-/* Total do Estoque */
-.total-estoque {
-  font-size: 1.4em;
-  font-weight: bold;
-  margin-bottom: 20px;
-  text-align: center;
-  color: #27ae60;
-  padding: 8px 0;
-  border-bottom: 1px solid #e0e0e0;
-}
+    /* Total do Estoque */
+    .total-estoque {
+      font-size: 1.4em; /* Ajusta para mobile */
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-align: center; /* Centraliza para melhor visualização em mobile */
+      color: #27ae60;
+      padding: 8px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
 
-/* Controles da Tabela (Pesquisa, Filtro, Botões) */
-.table-controls {
-  display: flex;
-  flex-direction: column; /* Sempre empilha verticalmente para mobile-first */
-  gap: 10px;
-  margin-bottom: 15px;
-  align-items: stretch; /* Estica os itens para preencher a largura */
-}
-.table-controls input[type="text"],
-.table-controls select,
-.table-controls button {
-  width: 100%; /* Ocupa a largura total */
-  box-sizing: border-box;
-  padding: 12px;
-  font-size: 1.1em;
-}
-.table-controls button {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-.table-controls button:hover {
-    background-color: #2980b9;
-}
+    /* Controles da Tabela (Pesquisa, Filtro, Botões) */
+    .table-controls {
+      display: flex;
+      flex-direction: column; /* Empilha os elementos verticalmente em mobile */
+      gap: 10px; /* Reduz o espaçamento entre os elementos */
+      margin-bottom: 15px;
+      align-items: stretch; /* Estica os elementos para preencher a largura */
+    }
+    .table-controls input[type="text"],
+    .table-controls select,
+    .table-controls button { /* Aplica estilos a botões também */
+      width: 100%; /* Ocupa a largura total */
+      box-sizing: border-box; /* Garante que padding e border não adicionem largura */
+      padding: 12px; /* Aumenta o padding para facilitar o toque */
+      font-size: 1.1em; /* Fonte um pouco maior para legibilidade */
+    }
+    .table-controls button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .table-controls button:hover {
+      background-color: #2980b9;
+    }
 
-/* Tabela de Itens */
-/* Novo wrapper para a tabela para permitir rolagem horizontal */
-.table-responsive {
-  overflow-x: auto; /* Permite rolagem horizontal se o conteúdo for muito largo */
-}
-table {
-  width: 100%; /* Permite que a tabela tente ocupar a largura total */
-  min-width: 600px; /* **Define uma largura mínima para a tabela**. Se a tela for menor que isso, a rolagem horizontal aparecerá. Isso garante que as colunas não fiquem excessivamente espremidas. */
-  border-collapse: collapse;
-  margin-top: 15px;
-  background-color: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  border-radius: 8px;
-  overflow: hidden;
-}
-th, td {
-  border: 1px solid #e0e0e0;
-  padding: 10px;
-  text-align: left;
-  font-size: 0.9em;
-  white-space: nowrap; /* Impede que o texto quebre linhas, forçando a rolagem horizontal da tabela se necessário */
-}
-th {
-  background-color: #f8f9fa;
-  font-weight: bold;
-  color: #555;
-  text-transform: uppercase;
-}
-tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-tbody tr:hover {
-  background-color: #f1f1f1;
-  transition: background-color 0.2s ease;
-}
+    /* --- Esconde a Tabela Completamente (não será usada neste layout de cards) --- */
+    .table-responsive,
+    table {
+      display: none; /* Garante que a tabela nunca seja exibida */
+    }
 
-/* Status com Cores */
-.status-em-estoque { background-color: #d4edda; color: #155724; font-weight: bold; }
-.status-temporariamente-indisponivel { background-color: #fff3cd; color: #856404; font-weight: bold; }
-.status-necessario-fazer-compra-novamente { background-color: #f8d7da; color: #721c24; font-weight: bold; }
-.status-esgotado { background-color: #f5c6cb; color: #721c24; font-weight: bold; }
+    /* --- Card List (Sempre visível e como padrão) --- */
+    .card-list {
+      display: flex; /* Sempre visível */
+      flex-direction: column;
+      gap: 15px; /* Espaçamento entre os cards */
+      margin-top: 15px;
+    }
 
-/* Botões de Ação na Tabela */
-td button {
-    padding: 8px 10px;
-    margin-right: 5px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8em;
-    transition: background-color 0.2s ease;
-    white-space: nowrap; /* Evita que o texto dos botões quebre */
-}
-td button:last-child {
-    margin-right: 0;
-}
-td button.edit-btn {
-    background-color: #f39c12;
-    color: white;
-}
-td button.edit-btn:hover {
-    background-color: #e67e22;
-}
-td button.delete-btn {
-    background-color: #e74c3c;
-    color: white;
-}
-td button.delete-btn:hover {
-    background-color: #c0392b;
-}
+    .item-card {
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      font-size:1.5rem;
+      gap: 8px;
+      position: relative; /* Para posicionar os botões de ação */
+    }
 
-/* Formulário de Adição/Edição */
-.form-section {
-    margin-top: 25px;
-    padding: 15px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    background-color: #fdfdfd;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-.form-group {
-    margin-bottom: 15px;
-}
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
-}
-.form-group input[type="text"],
-.form-group input[type="number"],
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #dcdcdc;
-    border-radius: 6px;
-    font-size: 1em;
-    box-sizing: border-box;
-}
-.form-group textarea {
-    resize: vertical;
-    min-height: 60px;
-}
-.form-buttons {
-    margin-top: 20px;
-    text-align: center;
-    display: flex; /* Para centralizar e espaçar os botões */
-    flex-wrap: wrap; /* Permite que os botões quebrem linha se necessário */
-    justify-content: center; /* Centraliza os botões */
-    gap: 10px; /* Espaço entre os botões */
-}
-.form-buttons button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s ease;
-    flex-grow: 1; /* Permite que os botões cresçam para ocupar o espaço disponível */
-    max-width: 180px; /* Limita o tamanho máximo de cada botão */
-    box-sizing: border-box;
-}
-.form-buttons button[type="submit"] {
-    background-color: #28a745;
-    color: white;
-}
-.form-buttons button[type="submit"]:hover {
-    background-color: #218838;
-}
-.form-buttons .btn-cancel {
-    background-color: #6c757d;
-    color: white;
-}
-.form-buttons .btn-cancel:hover {
-    background-color: #5a6268;
-}
+    .card-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-/* Mensagens */
-.message {
-    padding: 10px 15px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    font-weight: bold;
-    text-align: center;
-    font-size: 0.95em;
-}
-.message.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-.message.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-    </style>
+    .card-label {
+      font-weight: bold;
+      color: #555;
+      font-size: 0.9em;
+      min-width: 80px; /* Para alinhar labels */
+    }
+
+    .card-value {
+      flex-grow: 1;
+      text-align: right; /* Alinha o valor à direita */
+      word-break: break-word; /* Permite quebrar palavras longas */
+      font-size: 0.95em;
+    }
+
+    .card-value.status {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      font-weight: bold;
+      display: inline-block; /* Para que o background ocupe apenas o texto */
+    }
+    
+    .card-observations {
+        font-size: 0.9em;
+        color: #666;
+        padding-top: 5px;
+        border-top: 1px dashed #eee; /* Separador para observações */
+        margin-top: 10px;
+    }
+    
+    .card-actions {
+      display: flex;
+      justify-content: space-between; /* Alinha os botões à direita */
+      gap: 8px; /* Espaçamento entre os botões */
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+      /* Status com Cores (aplicado aos cards) */
+      .status-em-estoque { background-color: #e0f2f7; color: #007bff; } 
+      .status-comprar-novamente { background-color: #ffeeba; color: #856404; } 
+      .status-esgotado { background-color: #f8d7da; color: #dc3545; } 
+
+    /* Botões de Ação */
+    .action-btn {
+      padding: 20px 70px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85em;
+      transition: background-color 0.2s ease;
+      white-space: nowrap;
+    }
+    .edit-btn {
+      background-color: green;
+      color: white;
+    }
+    .edit-btn:hover {
+      background-color: #218838;
+    }
+    .delete-btn {
+      background-color: red;
+      color: white;
+    }
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+
+    /* --- NOVO: Estilos para o Overlay do Formulário --- */
+    .form-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw; /* 100% da largura da viewport */
+        height: 100vh; /* 100% da altura da viewport */
+        background-color: rgba(0, 0, 0, 0.7); /* Fundo semi-transparente para escurecer o conteúdo de trás */
+        display: flex;
+        justify-content: center; /* Centraliza o formulário horizontalmente */
+        align-items: center; /* Centraliza o formulário verticalmente */
+        z-index: 1000; /* Garante que fique acima de outros elementos */
+        opacity: 0; /* Começa invisível */
+        visibility: hidden; /* E não interage */
+        transition: opacity 0.3s ease, visibility 0.3s ease; /* Transição suave */
+    }
+
+    .form-overlay.active {
+        opacity: 1; /* Torna visível */
+        visibility: visible; /* Torna interativo */
+    }
+
+    /* Formulário de Adição/Edição (dentro do overlay) */
+    /* Remova as propriedades `display: none` ou `display: block` diretas do `#formItem` */
+    .form-section { /* Já tinha algumas definições, vamos otimizá-las para o overlay */
+        background-color: #fdfdfd;
+        padding: 20px; /* Padding ajustado para o contexto de modal */
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        width: 95%; /* Ocupa a maior parte da largura */
+        max-width: 500px; /* Limita a largura máxima em telas maiores */
+        box-sizing: border-box;
+        max-height: 90vh; /* Limita a altura para permitir rolagem dentro do formulário */
+        overflow-y: auto; /* Permite rolagem dentro do formulário se for muito longo */
+        transform: translateY(20px); /* Começa um pouco abaixo para o efeito de transição */
+        opacity: 0; /* Começa invisível para o efeito */
+        transition: transform 0.3s ease, opacity 0.3s ease; /* Transição suave */
+    }
+
+    /* Estilo do formulário quando o overlay está ativo */
+    .form-overlay.active .form-section {
+        transform: translateY(0); /* Sobe para a posição final */
+        opacity: 1; /* Torna visível */
+    }
+
+    .form-group {
+      margin-bottom: 15px; /* Reduz margem */
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px; /* Reduz margem */
+      font-weight: bold;
+      color: #555;
+    }
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group textarea,
+    .form-group select {
+      width: 100%; /* Ocupa a largura total */
+      padding: 10px; /* Ajusta padding */
+      border: 1px solid #dcdcdc;
+      border-radius: 6px;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px; /* Altura mínima menor */
+    }
+    .form-buttons {
+      margin-top: 20px; /* Reduz margem */
+      text-align: center; /* Centraliza botões */
+      display: flex; /* Para controlar o layout dos botões */
+      flex-wrap: wrap; /* Permite que os botões quebrem para a próxima linha */
+      justify-content: center; /* Centraliza os botões */
+      gap: 10px; /* Espaçamento entre os botões */
+    }
+    .form-buttons button {
+      padding: 10px 20px; /* Ajusta padding */
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.2s ease;
+      width: calc(50% - 10px); /* Tenta colocar 2 botões por linha */
+      max-width: 180px; /* Garante que não fiquem muito largos */
+      box-sizing: border-box;
+    }
+
+    /* Adaptação para botões em uma única linha em telas muito pequenas */
+    @media (max-width: 400px) {
+      .form-buttons button {
+        width: 100%; /* Ocupa a largura total */
+        margin: 5px 0; /* Margem vertical apenas */
+      }
+    }
+
+    .form-buttons button[type="submit"] {
+      background-color: #28a745;
+      color: white;
+    }
+    .form-buttons button[type="submit"]:hover {
+      background-color: #218838;
+    }
+    .form-buttons .btn-cancel {
+      background-color: #6c757d;
+      color: white;
+    }
+    .form-buttons .btn-cancel:hover {
+      background-color: #5a6268;
+    }
+
+    /* Mensagens */
+    .message {
+      padding: 10px 15px;
+      margin-bottom: 15px; /* Ajusta margem */
+      border-radius: 5px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 0.95em; /* Ajusta fonte */
+    }
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
 </head>
 <body>
   <div class="container" id="appContainer">
@@ -255,41 +333,49 @@ td button.delete-btn:hover {
         <select id="statusFilter">
             <option value="">Todos os Status</option>
             <option value="Em estoque">Em estoque</option>
-            <option value="Temporariamente indisponível">Temporariamente indisponível</option>
-            <option value="Necessário fazer compra novamente">Necessário fazer compra novamente</option>
+            <option value="Comprar novamente">Comprar novamente</option>
             <option value="Esgotado">Esgotado</option>
         </select>
-        <button onclick="carregarItens()">Atualizar Tabela</button>
+        <button onclick="carregarItens()">Atualizar Lista</button>
         <button onclick="mostrarFormularioAdicionar()">Adicionar Novo Item</button>
     </div>
-    <table id="tabelaItens">
-      <thead>
-        <tr>
-          <th>ID Item</th>
-          <th>Nome do Item</th>
-          <th>Tipo</th>
-          <th>Preço</th>
-          <th>Estoque</th>
-          <th>Status</th>
-          <th>Observações</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        </tbody>
-    </table>
 
-    <div class="form-section" id="formItem" style="display:none;">
-        <h2 id="formTitle">Adicionar Novo Item</h2>
+    <div class="table-responsive" style="display:none;">
+      <table id="tabelaItens">
+        <thead>
+          <tr>
+            <th>ID Item</th>
+            <th>Nome do Item</th>
+            <th>Tipo</th>
+            <th>Preço</th>
+            <th>Estoque</th>
+            <th>Status</th>
+            <th>Observações</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-list" id="cardListItens">
+    </div>
+
+  </div>
+
+  <div class="form-overlay" id="formOverlay">
+    <div class="form-section" id="formItem"> <h2 id="formTitle">Adicionar Novo Item</h2>
         <form id="itemForm">
-            <input type="hidden" id="itemId"> <div class="form-group">
+            <input type="hidden" id="itemId">
+            <div class="form-group">
                 <label for="itemName">Nome do Item:</label>
                 <input type="text" id="itemName" required>
             </div>
             <div class="form-group">
                 <label for="itemType">Tipo:</label>
                 <input type="text" id="itemType" required>
-                </div>
+            </div>
             <div class="form-group">
                 <label for="itemPrice">Preço:</label>
                 <input type="number" id="itemPrice" step="0.01" min="0" required>
@@ -302,8 +388,7 @@ td button.delete-btn:hover {
                 <label for="itemStatus">Status:</label>
                 <select id="itemStatus" required>
                     <option value="Em estoque">Em estoque</option>
-                    <option value="Temporariamente indisponível">Temporariamente indisponível</option>
-                    <option value="Necessário fazer compra novamente">Necessário fazer compra novamente</option>
+                    <option value="Comprar novamente">Comprar novamente</option>
                     <option value="Esgotado">Esgotado</option>
                 </select>
             </div>
@@ -317,12 +402,12 @@ td button.delete-btn:hover {
             </div>
         </form>
     </div>
-
   </div>
 
   <script>
+    const formOverlay = document.getElementById('formOverlay'); // Referência ao novo overlay
 
-     function showMessage(msg, type) {
+    function showMessage(msg, type) {
       const messageArea = document.getElementById('messageArea');
       messageArea.innerText = msg;
       messageArea.className = 'message ' + type;
@@ -330,8 +415,7 @@ td button.delete-btn:hover {
       setTimeout(() => {
           messageArea.style.display = 'none';
       }, 5000);
-  }
-
+    }
 
     // Inicialização ao carregar a página
     document.addEventListener('DOMContentLoaded', function() {
@@ -341,43 +425,64 @@ td button.delete-btn:hover {
         document.getElementById('statusFilter').addEventListener('change', carregarItens);
     });
 
-    // Função para carregar e exibir os itens na tabela
+    // Função para carregar e exibir os itens SOMENTE como cards
     function carregarItens() {
         const searchTerms = document.getElementById('searchInput').value.toLowerCase();
         const statusFilter = document.getElementById('statusFilter').value;
 
-        // Chama a função listarItens do Apps Script
         google.script.run
             .withSuccessHandler(function(itens) {
-                const tabelaCorpo = document.querySelector('#tabelaItens tbody');
-                tabelaCorpo.innerHTML = ''; // Limpa a tabela antes de preencher
+                const cardListContainer = document.getElementById('cardListItens');
+                cardListContainer.innerHTML = ''; // Limpa os cards
 
                 let valorTotal = 0;
 
                 itens.forEach(item => {
-                    // Filtro por pesquisa (nome ou ID) e status
                     const matchesSearch = (item.nomedoitem && item.nomedoitem.toLowerCase().includes(searchTerms)) ||
-                                        (item.iditem && String(item.iditem).toLowerCase().includes(searchTerms)) || 
-                                        (item.tipo && item.tipo.toLowerCase().includes(searchTerms));
+                                         (item.iditem && String(item.iditem).toLowerCase().includes(searchTerms)) ||
+                                         (item.tipo && item.tipo.toLowerCase().includes(searchTerms));
                     const matchesStatus = statusFilter === "" || (item.status && item.status === statusFilter);
 
                     if (matchesSearch && matchesStatus) {
-                        const row = tabelaCorpo.insertRow();
                         const statusClass = `status-${(item.status || '').toLowerCase().replace(/\s+/g, '-')}`;
+                        const precoFormatado = parseFloat(item.preco || 0).toFixed(2).replace('.', ',');
 
-                        row.innerHTML = `
-                            <td>${item.iditem || ''}</td>
-                            <td>${item.nomedoitem || ''}</td>
-                            <td>${item.tipo || ''}</td>
-                            <td>R$ ${parseFloat(item.preco || 0).toFixed(2).replace('.', ',')}</td>
-                            <td>${item.estoque || 0}</td>
-                            <td class="${statusClass}">${item.status || ''}</td>
-                            <td>${item.observacoes || ''}</td>
-                            <td>
-                                <button class="edit-btn" onclick="mostrarFormularioEditar('${item.iditem}')">Editar</button>
-                                <button class="delete-btn" onclick="excluirItem('${item.iditem}')">Excluir</button>
-                            </td>
+                        // Adiciona ao Card List
+                        const card = document.createElement('div');
+                        card.classList.add('item-card');
+                        card.innerHTML = `
+                            <div class="card-row">
+                                <span class="card-label">ID Item:</span>
+                                <span class="card-value">${item.iditem || ''}</span>
+                            </div>
+                            <div class="card-row">
+                                <span class="card-label">Nome:</span>
+                                <span class="card-value">${item.nomedoitem || ''}</span>
+                            </div>
+                            <div class="card-row">
+                                <span class="card-label">Tipo:</span>
+                                <span class="card-value">${item.tipo || ''}</span>
+                            </div>
+                            <div class="card-row">
+                                <span class="card-label">Preço:</span>
+                                <span class="card-value">R$ ${precoFormatado}</span>
+                            </div>
+                            <div class="card-row">
+                                <span class="card-label">Estoque:</span>
+                                <span class="card-value">${item.estoque || 0}</span>
+                            </div>
+                            <div class="card-row">
+                                <span class="card-label">Status:</span>
+                                <span class="card-value status ${statusClass}">${item.status || ''}</span>
+                            </div>
+                            ${item.observacoes ? `<div class="card-observations"><strong>Obs:</strong> ${item.observacoes}</div>` : ''}
+                            <div class="card-actions">
+                                <button class="action-btn edit-btn" onclick="mostrarFormularioEditar('${item.iditem}')">Editar</button>
+                                <button class="action-btn delete-btn" onclick="excluirItem('${item.iditem}')">Excluir</button>
+                            </div>
                         `;
+                        cardListContainer.appendChild(card);
+
                         valorTotal += (parseFloat(item.preco || 0) * parseInt(item.estoque || 0));
                     }
                 });
@@ -387,12 +492,12 @@ td button.delete-btn:hover {
                 console.error("Erro ao carregar itens:", error.message);
                 showMessage("Erro ao carregar itens: " + error.message, 'error');
             })
-            .listarItens(); // Chama a função listarItens no Code.gs
+            .listarItens();
     }
 
     // Exibe o formulário para adicionar um novo item
     function mostrarFormularioAdicionar() {
-        document.getElementById('formItem').style.display = 'block';
+        formOverlay.classList.add('active'); // Ativa o overlay
         document.getElementById('itemId').value = ''; // Limpa o ID para nova adição
         document.getElementById('itemForm').reset(); // Limpa todos os campos
         document.getElementById('formTitle').innerText = 'Adicionar Novo Item';
@@ -403,11 +508,10 @@ td button.delete-btn:hover {
     // Exibe o formulário para editar um item existente
     function mostrarFormularioEditar(id) {
         showMessage('', ''); // Limpa mensagens anteriores
-        // Primeiro, chame o backend para buscar os dados do item
+        formOverlay.classList.add('active'); // Ativa o overlay
         google.script.run
             .withSuccessHandler(function(item) {
                 if (item) {
-                    document.getElementById('formItem').style.display = 'block';
                     document.getElementById('itemId').value = item.iditem;
                     document.getElementById('itemName').value = item.nomedoitem;
                     document.getElementById('itemType').value = item.tipo;
@@ -419,25 +523,26 @@ td button.delete-btn:hover {
                     document.getElementById('itemName').focus(); // Foca no primeiro campo
                 } else {
                     showMessage('Item não encontrado para edição.', 'error');
+                    esconderFormulario(); // Esconde o formulário se o item não for encontrado
                 }
             })
             .withFailureHandler(function(error) {
                 console.error("Erro ao buscar item para edição:", error.message);
                 showMessage("Erro ao buscar item para edição: " + error.message, 'error');
+                esconderFormulario(); // Esconde o formulário em caso de erro
             })
-            .buscarItem(id); // Chama a função buscarItem no Code.gs
+            .buscarItem(id);
     }
 
     // Esconde o formulário
     function esconderFormulario() {
-        document.getElementById('formItem').style.display = 'none';
+        formOverlay.classList.remove('active'); // Desativa o overlay
         showMessage('', ''); // Limpa mensagens anteriores
     }
 
     // Lida com o envio do formulário (Adicionar/Editar)
     function handleFormSubmit(event) {
         event.preventDefault(); // Impede o envio padrão do formulário
-        console.log("handleFormSubmit")
         const itemId = document.getElementById('itemId').value;
         const itemData = {
             iditem: itemId || null,
@@ -457,7 +562,7 @@ td button.delete-btn:hover {
 
         const successHandler = function() {
             showMessage('Item salvo com sucesso!', 'success');
-            esconderFormulario();
+            esconderFormulario(); // Esconde o formulário e retorna à tela normal
             carregarItens(); // Recarrega a lista para mostrar as alterações
         };
 
@@ -466,17 +571,16 @@ td button.delete-btn:hover {
             showMessage("Erro ao salvar item: " + error.message, 'error');
         };
 
-        // CORREÇÃO AQUI: Chame a função do Apps Script PRIMEIRO, depois encadeie os handlers
         if (itemId) { // Se itemId existe, é uma edição
             google.script.run
                 .withSuccessHandler(successHandler)
                 .withFailureHandler(failureHandler)
-                .editarItem(itemData); // Chama editarItem
+                .editarItem(itemData);
         } else { // Se itemId não existe, é uma adição
             google.script.run
                 .withSuccessHandler(successHandler)
                 .withFailureHandler(failureHandler)
-                .adicionarItem(itemData); // Chama adicionarItem
+                .adicionarItem(itemData);
         }
     }
 
@@ -492,10 +596,9 @@ td button.delete-btn:hover {
                     console.error("Erro ao excluir item:", error.message);
                     showMessage("Erro ao excluir item: " + error.message, 'error');
                 })
-                .excluirItem(id); // Chama a função excluirItem no Code.gs
+                .excluirItem(id);
         }
     }
-
   </script>
 </body>
 </html>
